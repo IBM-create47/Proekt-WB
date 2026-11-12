@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Конструктор Карточек</title>
+    <style>
+        :root { --bg: #0b0f19; --panel: #151b2b; --accent: #6366f1; --text: #e2e8f0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .header { font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; color: white; text-align: center; }
+        .app-container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 800px; }
+        
+        .panel { background: var(--panel); padding: 20px; border-radius: 16px; border: 1px solid #2a344a; }
+        .upload-box { border: 2px dashed #4a5568; padding: 20px; text-align: center; border-radius: 12px; cursor: pointer; transition: 0.2s; position: relative; margin-bottom: 15px; }
+        .upload-box:hover { border-color: var(--accent); background: rgba(99, 102, 241, 0.05); }
+        .upload-box input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        
+        textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #4a5568; background: #0b0f19; color: white; margin-bottom: 15px; resize: vertical; min-height: 60px; font-size: 1rem; }
+        textarea:focus { outline: none; border-color: var(--accent); }
+
+        .preview-container { width: 100%; min-height: 300px; background: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .result-img { width: 100%; height: auto; display: none; }
+        
+        button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--accent); color: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #4f46e5; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-download { background: #10b981; margin-top: 15px; display: none; }
+        .btn-download:hover { background: #059669; }
+        .loading-text { color: #a0aec0; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <div class="header">AI Конструктор Карточек</div>
+    
+    <div class="app-container">
+        <!-- Панель управления -->
+        <div class="panel">
+            <label class="upload-box" id="uploadLabel">
+                <input type="file" id="fileInput" accept="image/*">
+                <div style="font-size: 2rem; margin-bottom: 10px;">📸</div>
+                <div id="uploadText">Нажмите, чтобы загрузить фото</div>
+            </label>
+
+            <textarea id="promptInput" placeholder="Опишите фон (например: на мраморном столе, неоновый свет, в спортзале)..."></textarea>
+            
+            <button id="generateBtn">Сгенерировать с ИИ</button>
+        </div>
+
+        <!-- Панель результата -->
+        <div class="panel">
+            <div class="preview-container" id="previewContainer">
+                <span style="color: #4a5568;">Здесь появится результат</span>
+                <img id="resultImage" class="result-img" alt="Результат">
+            </div>
+            <a id="downloadLink" style="text-decoration: none;">
+                <button class="btn-download" id="downloadBtn">⬇️ Скачать карточку</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const resultImage = document.getElementById('resultImage');
+        const downloadLink = document.getElementById('downloadLink');
+        const uploadText = document.getElementById('uploadText');
+
+        let currentFile = null;
+
+        // 1. Загрузка фото
+        fileInput.addEventListener('change', (e) => {
+            currentFile = e.target.files[0];
+            if (currentFile) {
+                uploadText.textContent = '✅ Фото загружено! Нажмите "Сгенерировать"';
+                uploadText.style.color = '#10b981';
+                downloadLink.style.display = 'none';
+                resultImage.style.display = 'none';
+                previewContainer.innerHTML = '<span style="color: #10b981;">Фото готово к генерации...</span>';
+            }
+        });
+
+        // 2. Генерация
+        generateBtn.addEventListener('click', async () => {
+            if (!currentFile) return alert('Пожалуйста, сначала выберите фото!');
+            const prompt = promptInput.value.trim();
+            if (!prompt) return alert('Напишите, какой фон вы хотите!');
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Нейросеть рисует фон...';
+            previewContainer.innerHTML = '<span class="loading-text">⏳ Генерация (10-20 сек)...</span>';
+            downloadLink.style.display = 'none';
+            
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 800;
+                const ctx = canvas.getContext('2d');
+
+                // ШАГ 1: Нейросеть (Pollinations)
+                const encodedPrompt = encodeURIComponent(prompt);
+                const bgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true`;
+
+                const bgImg = new Image();
+                bgImg.crossOrigin = 'anonymous';
+                bgImg.src = bgUrl;
+
+                await new Promise((resolve, reject) => {
+                    bgImg.onload = resolve;
+                    bgImg.onerror = () => reject(new Error('Ошибка загрузки фона. Попробуйте еще раз.'));
+                });
+
+                // Рисуем фон
+                ctx.drawImage(bgImg, 0, 0, 800, 800);
+
+                // ШАГ 2: Загружаем фото пользователя
+                const userImg = new Image();
+                userImg.src = URL.createObjectURL(currentFile);
+                await new Promise((resolve) => { userImg.onload = resolve; });
+
+                // ШАГ 3: Накладываем фото по центру
+                const aspect = userImg.width / userImg.height;
+                let drawWidth = 500;
+                let drawHeight = drawWidth / aspect;
+
+                if (drawHeight > 600) {
+                    drawHeight = 600;
+                    drawWidth = drawHeight * aspect;
+                }
+
+                const x = (800 - drawWidth) / 2;
+                const y = (800 - drawHeight) / 2;
+
+                ctx.drawImage(userImg, x, y, drawWidth, drawHeight);
+
+                // ШАГ 4: Результат
+                const finalUrl = canvas.toDataURL('image/jpeg', 0.9);
+                
+                previewContainer.innerHTML = '';
+                              resultImage.src = finalUrl;
+                resultImage.style.display = 'block';
+                previewContainer.appendChild(resultImage);
+
+                downloadLink.href = finalUrl;
+                downloadLink.style.display = 'block';
+
+            } catch (error) {
+                alert('ОШИБКА: ' + error.message);
+                previewContainer.innerHTML = '<span style="color: #ef4444;">Ошибка генерации</span>';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Сгенерировать с ИИ';
+            }
+        });
+    </script>
+</body>
+</html>
