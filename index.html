@@ -123,15 +123,16 @@
                 // ШАГ 3: Накладываем фото по центру
                 const aspect = userImg.width / userImg.height;
                 let drawWidth = 500;
-                let drawHeight = drawWidth / aspect;
-
+                let drawHeight = drawWidth / aspect; drawHeight
                 if (drawHeight > 600) {
-                    drawHeight = 600;
-                    drawWidth = drawHeight * aspect;
-                }
+   drawHeight = 600;
+    drawWidth = drawHeight * aspect;
+}
 
-                const x = (800 - drawWidth) / 2;
-                const y = (800 - drawHeight) / 2;// --- ДОБАВЛЯЕМ ТЕНЬ И РИСУЕМ ТОВАР ---
+const x = (800 - drawWidth) / 2;
+const y = (800 - drawHeight) / 2 + 150;
+
+// --- ДОБАВЛЯЕМ ТЕНЬ И РИСУЕМ ТОВАР ---
 ctx.save(); 
 ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'; 
 ctx.shadowBlur = 25; 
@@ -139,7 +140,7 @@ ctx.shadowOffsetX = 0;
 ctx.shadowOffsetY = 15; 
 
 ctx.drawImage(userImg, x, y, drawWidth, drawHeight); 
-ctx.restore(); 
+ctx.restore();
 
                 // ШАГ 4: Результат
                 const finalUrl = canvas.toDataURL('image/jpeg', 0.9);
