@@ -10,155 +10,212 @@
         body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .header { font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; color: white; text-align: center; }
         .app-container { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 800px; }
-        
         .panel { background: var(--panel); padding: 20px; border-radius: 16px; border: 1px solid #2a344a; }
-        .upload-box { border: 2px dashed #4a5568; padding: 20px; text-align: center; border-radius: 12px; cursor: pointer; transition: 0.2s; position: relative; margin-bottom: 15px; }
-        .upload-box:hover { border-color: var(--accent); background: rgba(99, 102, 241, 0.05); }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #2a344a; padding-bottom: 10px; }
+        .tabs button { background: transparent; color: #a0aec0; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .tabs button.active { background: #2a344a; color: white; }
+
+        .upload-box { border: 2px dashed #4a5568; padding: 20px; text-align: center; border-radius: 12px; cursor: pointer; margin-bottom: 15px; position: relative; }
         .upload-box input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
         
-        textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #4a5568; background: #0b0f19; color: white; margin-bottom: 15px; resize: vertical; min-height: 60px; font-size: 1rem; }
-        textarea:focus { outline: none; border-color: var(--accent); }
+        .section-title { font-size: 0.9rem; color: #a0aec0; margin-bottom: 8px; }
+        .btn-group { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
+        .btn-group button { background: #1f2937; color: white; padding: 8px 15px; border-radius: 20px; border: 1px solid #4a5568; font-size: 0.85rem; white-space: nowrap; cursor: pointer; }
+        .btn-group button:hover { border-color: var(--accent); }
+        
+        .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .grid-btns button { background: #1f2937; color: white; padding: 12px; border-radius: 10px; border: 1px solid #4a5568; font-size: 0.85rem; cursor: pointer; }
+        .grid-btns button:hover { border-color: var(--accent); }
 
-        .preview-container { width: 100%; min-height: 300px; background: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .result-img { width: 100%; height: auto; display: none; }
+        .generate-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--accent); color: white; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .generate-btn:disabled { opacity: 0.5; }
+
+        .preview-container { width: 100%; min-height: 300px; background: #000; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; }
+        .preview-container img { width: 100%; height: auto; display: none; }
         
-        button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--accent); color: white; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button:hover { background: #4f46e5; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .desc-box { display: none; margin-bottom: 15px; background: #0b0f19; padding: 15px; border-radius: 10px; border: 1px solid #2a344a; }
+        .desc-box h3 { color: #6366f1; margin-bottom: 10px; font-size: 1rem; }
+        .desc-box textarea { width: 100%; min-height: 100px; background: transparent; border: none; color: white; font-size: 0.95rem; resize: vertical; }
         
-        .btn-download { background: #10b981; margin-top: 15px; display: none; }
-        .btn-download:hover { background: #059669; }
-        .loading-text { color: #a0aec0; font-size: 1.1rem; }
+        .btn-download { background: #10b981; display: none; text-align: center; text-decoration: none; color: white; padding: 15px; border-radius: 10px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="header">AI Конструктор Карточек</div>
     
     <div class="app-container">
-        <!-- Панель управления -->
+        <!-- ПАНЕЛЬ УПРАВЛЕНИЯ -->
         <div class="panel">
+            <div class="tabs">
+                <button class="active">Фото</button>
+                <button>Карта</button>
+                <button>Видео</button>
+            </div>
+
             <label class="upload-box" id="uploadLabel">
                 <input type="file" id="fileInput" accept="image/*">
-                <div style="font-size: 2rem; margin-bottom: 10px;">📸</div>
-                <div id="uploadText">Нажмите, чтобы загрузить фото</div>
+                <div style="font-size: 1.5rem; margin-bottom: 5px;">📸</div>
+                <div id="uploadText" style="font-size: 0.9rem;">Нажмите, чтобы загрузить фото</div>
             </label>
 
-            <textarea id="promptInput" placeholder="Опишите фон (например: на мраморном столе, неоновый свет, в спортзале)..."></textarea>
-            
-            <button id="generateBtn">Сгенерировать с ИИ</button>
+            <p class="section-title">Какая у вас категория?</p>
+            <div class="btn-group">
+                <button onclick="setCategory('supplement')">💊 Спортпит</button>
+                <button onclick="setCategory('clothes')">👕 Одежда</button>
+                <button onclick="setCategory('cosmetics')">🧴 Косметика</button>
+            </div>
+
+            <p class="section-title">Выберите сценарий (фон):</p>
+            <div class="grid-btns">
+                <button onclick="setPrompt('gym')">🏋️ В спортзале</button>
+                <button onclick="setPrompt('kitchen')">🍳 На кухне</button>
+                <button onclick="setPrompt('cafe')">☕ В кафе</button>
+                <button onclick="setPrompt('studio')">⬜ В студии</button>
+            </div>
+
+            <input type="hidden" id="promptInput" value="professional product photography, 8k, photorealistic, no people">
+            <button id="generateBtn" class="generate-btn">Сгенерировать с ИИ</button>
         </div>
 
-        <!-- Панель результата -->
+        <!-- ПАНЕЛЬ РЕЗУЛЬТАТА -->
         <div class="panel">
             <div class="preview-container" id="previewContainer">
                 <span style="color: #4a5568;">Здесь появится результат</span>
-                <img id="resultImage" class="result-img" alt="Результат">
+                <img id="resultImage" alt="Результат">
             </div>
-            <a id="downloadLink" style="text-decoration: none;">
-                <button class="btn-download" id="downloadBtn">⬇️ Скачать карточку</button>
-            </a>
+
+            <div class="desc-box" id="descriptionBox">
+                <h3>Описание товара (ИИ):</h3>
+                <textarea id="aiDescription" placeholder="Здесь появится описание..."></textarea>
+            </div>
+
+            <a id="downloadLink" class="btn-download">⬇️ Скачать карточку</a>
         </div>
     </div>
 
     <script>
         const fileInput = document.getElementById('fileInput');
-        const promptInput = document.getElementById('promptInput');
         const generateBtn = document.getElementById('generateBtn');
         const previewContainer = document.getElementById('previewContainer');
         const resultImage = document.getElementById('resultImage');
         const downloadLink = document.getElementById('downloadLink');
         const uploadText = document.getElementById('uploadText');
-
+        const descBox = document.getElementById('descriptionBox');
+        const descArea = document.getElementById('aiDescription');
+        
         let currentFile = null;
+        let selectedCategory = '';
 
-        // 1. Загрузка фото
         fileInput.addEventListener('change', (e) => {
             currentFile = e.target.files[0];
             if (currentFile) {
-                uploadText.textContent = '✅ Фото загружено! Нажмите "Сгенерировать"';
+                uploadText.textContent = '✅ Фото загружено! Выберите сценарий и жмите кнопку';
                 uploadText.style.color = '#10b981';
                 downloadLink.style.display = 'none';
                 resultImage.style.display = 'none';
+                descBox.style.display = 'none';
                 previewContainer.innerHTML = '<span style="color: #10b981;">Фото готово к генерации...</span>';
             }
         });
 
-        // 2. Генерация
-        generateBtn.addEventListener('click', async () => {
-            if (!currentFile) return alert('Пожалуйста, сначала выберите фото!');
-            const prompt = promptInput.value.trim();
-            if (!prompt) return alert('Напишите, какой фон вы хотите!');
+        function setCategory(cat) { selectedCategory = cat; }
 
-            generateBtn.disabled = true;
-            generateBtn.textContent = 'Нейросеть рисует фон...';
-            previewContainer.innerHTML = '<span class="loading-text">⏳ Генерация (10-20 сек)...</span>';
-            downloadLink.style.display = 'none';
-            
-            try {
-                const canvas = document.createElement('canvas');
-                canvas.width = 800;
-                canvas.height = 800;
-                const ctx = canvas.getContext('2d');
-
-                // ШАГ 1: Нейросеть (Pollinations)
-                const encodedPrompt = encodeURIComponent(prompt);
-                const bgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&model=flux`;
-
-                const bgImg = new Image();
-                bgImg.crossOrigin = 'anonymous';
-                bgImg.src = bgUrl;
-
-                await new Promise((resolve, reject) => {
-                    bgImg.onload = resolve;
-                    bgImg.onerror = () => reject(new Error('Ошибка загрузки фона. Попробуйте еще раз.'));
-                });
-
-                // Рисуем фон
-                
-                // ШАГ 2: Загружаем фото пользователя
-                const userImg = new Image();
-                userImg.src = URL.createObjectURL(currentFile);
-                await new Promise((resolve) => { userImg.onload = resolve; });
-
-                // ШАГ 3: Накладываем фото по центру
-                const aspect = userImg.width / userImg.height;
-                let drawWidth = 500;
-                let drawHeight = drawWidth / aspect; drawHeight
-                if (drawHeight > 600) {
-   drawHeight = 600;
-    drawWidth = drawHeight * aspect;
+        function setPrompt(scene) {    let bg = '';
+    if(scene === 'gym') bg = 'on a textured gym floor with dumbbells, dark moody lighting';
+    if(scene === 'kitchen') bg = 'on a marble kitchen counter, morning sunlight, blurred background';
+    if(scene === 'cafe') bg = 'on a wooden table in a cozy cafe, warm lighting, bokeh';
+    if(scene === 'studio') bg = 'minimalist white studio background, soft shadows';
+    
+    const finalPrompt = `${selectedCategory} product, ${bg}, 8k, photorealistic, no people`;
+    document.getElementById('promptInput').value = finalPrompt;
+    
+    generateBtn.textContent = 'Сценарий выбран! Нажмите сюда';
+    generateBtn.style.background = '#10b981';
 }
 
-const x = (800 - drawWidth) / 2;
-const y = (800 - drawHeight) / 2 + 150;
+generateBtn.addEventListener('click', async () => {
+    if (!currentFile) return alert('Сначала загрузите фото!');
+    const prompt = document.getElementById('promptInput').value;
 
-// --- ДОБАВЛЯЕМ ТЕНЬ И РИСУЕМ ТОВАР ---
-ctx.save(); 
-ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'; 
-ctx.shadowBlur = 25; 
-ctx.shadowOffsetX = 0; 
-ctx.shadowOffsetY = 15; 
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Нейросеть рисует... (10-20 сек)';
+    previewContainer.innerHTML = '<span style="color: #a0aec0;">⏳ Генерация...</span>';
+    downloadLink.style.display = 'none';
+    descBox.style.display = 'none';
 
-ctx.drawImage(userImg, x, y, drawWidth, drawHeight); 
-ctx.restore();
+    try {
+        const canvas = document.createElement('canvas');
+canvas.width = 800;
+canvas.height = 800;
+const ctx = canvas.getContext('2d');
 
-                // ШАГ 4: Результат
+// 1. Генерируем фон
+const bgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=800&nologo=true`;
+const bgImg = new Image();
+bgImg.crossOrigin = 'anonymous';
+bgImg.src = bgUrl;
+await new Promise((res, rej) => { bgImg.onload = res; bgImg.onerror = rej; });
+
+ctx.drawImage(bgImg, 0, 0, 800, 800);
+                // 2. Накладываем товар
+                const userImg = new Image();
+                userImg.src = URL.createObjectURL(currentFile);
+                await new Promise((res) => { userImg.onload = res; });
+
+                const aspect = userImg.width / userImg.height;
+                let drawWidth = 500, drawHeight = drawWidth / aspect;
+                if (drawHeight > 600) { drawHeight = 600; drawWidth = drawHeight * aspect; }
+                const x = (800 - drawWidth) / 2;
+                const y = (800 - drawHeight) / 2 + 100;
+
+                // 3. Тень
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                ctx.shadowBlur = 25;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 15;
+                ctx.drawImage(userImg, x, y, drawWidth, drawHeight);
+                ctx.restore();
+
+                // 4. Результат
                 const finalUrl = canvas.toDataURL('image/jpeg', 0.9);
-                
                 previewContainer.innerHTML = '';
-                              resultImage.src = finalUrl;
+                resultImage.src = finalUrl;
                 resultImage.style.display = 'block';
                 previewContainer.appendChild(resultImage);
-
                 downloadLink.href = finalUrl;
                 downloadLink.style.display = 'block';
 
+                // 5. Описание
+                descBox.style.display = 'block';
+                descArea.value = 'Нейросеть изучает фото и пишет текст...';
+                
+                try {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(currentFile);
+                    const base64 = await new Promise(r => { reader.onloadend = () => r(reader.result); });
+                    
+                    const descRes = await fetch('https://text.pollinations.ai/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: [
+                                { role: 'system', content: 'Ты копирайтер Wildberries. Опиши товар на фото (до 1000 знаков) на русском. Укажи преимущества.' },
+                                { role: 'user', content: [{ type: 'text', text: 'Фото:' }, { type: 'image_url', image_url: { url: base64 } }] }
+                            ]
+                        })
+                    });
+                    descArea.value = await descRes.text();
+                } catch(e) { descArea.value = 'Описание временно недоступно.'; }
+
             } catch (error) {
-                alert('ОШИБКА: ' + error.message);
+                alert('Ошибка! Нейросеть перегружена. Попробуйте еще раз.');
                 previewContainer.innerHTML = '<span style="color: #ef4444;">Ошибка генерации</span>';
             } finally {
                 generateBtn.disabled = false;
                 generateBtn.textContent = 'Сгенерировать с ИИ';
+                generateBtn.style.background = '#6366f1';
             }
         });
     </script>
