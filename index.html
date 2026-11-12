@@ -102,7 +102,7 @@
 
                 // ШАГ 1: Нейросеть (Pollinations)
                 const encodedPrompt = encodeURIComponent(prompt);
-                const bgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true`;
+                const bgUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=800&nologo=true&model=flux`;
 
                 const bgImg = new Image();
                 bgImg.crossOrigin = 'anonymous';
@@ -114,8 +114,7 @@
                 });
 
                 // Рисуем фон
-                ctx.drawImage(bgImg, 0, 0, 800, 800);
-
+                
                 // ШАГ 2: Загружаем фото пользователя
                 const userImg = new Image();
                 userImg.src = URL.createObjectURL(currentFile);
@@ -132,9 +131,15 @@
                 }
 
                 const x = (800 - drawWidth) / 2;
-                const y = (800 - drawHeight) / 2;
+                const y = (800 - drawHeight) / 2;// --- ДОБАВЛЯЕМ ТЕНЬ И РИСУЕМ ТОВАР ---
+ctx.save(); 
+ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'; 
+ctx.shadowBlur = 25; 
+ctx.shadowOffsetX = 0; 
+ctx.shadowOffsetY = 15; 
 
-                ctx.drawImage(userImg, x, y, drawWidth, drawHeight);
+ctx.drawImage(userImg, x, y, drawWidth, drawHeight); 
+ctx.restore(); 
 
                 // ШАГ 4: Результат
                 const finalUrl = canvas.toDataURL('image/jpeg', 0.9);
